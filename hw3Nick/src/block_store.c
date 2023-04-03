@@ -125,29 +125,60 @@ size_t block_store_get_total_blocks()
 
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
-    UNUSED(buffer);
-    return 0;
+     if (bs != NULL && block_id < 255 && buffer != NULL){
+    memcpy(buffer, bs->blockArray[block_id].bytes, 256);
+    return 256;
+  }
+  else return 0;
 }
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
-    UNUSED(buffer);
-    return 0;
+     if (bs != NULL && block_id < 255 && buffer != NULL){
+     memcpy(bs->blockArray[block_id].bytes, buffer, 256);
+    return 256;
+  }
+  else return 0;
 }
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    UNUSED(filename);
-    return NULL;
+     if (filename != NULL){
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0)//On error, -1 is returned.
+     {
+      return 0;
+    }
+    block_store_t *bs = block_store_create(filename);
+    int readOne = read(fd, bs->blockArray, BLOCK_STORE_AVAIL_BLOCKS*BLOCK_SIZE_BYTES);
+    int readTwo = read(fd, bs->bitmapPtr, BLOCK_STORE_NUM_BLOCKS/8);
+    if (readOne > 0 && readTwo > 0){ return bs;}
+  }
+  return 0;
+      /*
+  UNUSED(filename);
+  return 0;
+      */
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 { 
+     if (bs == NULL || filename == NULL) {return 0;}
+  int fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+  //int fd = open(filename, O_WRONLY);
+  if (fd >= 0)
+    {
+      write(fd, bs->blockArray, BLOCK_STORE_AVAIL_BLOCKS*BLOCK_SIZE_BYTES);
+      write(fd, bs->bitmapPtr, BLOCK_STORE_NUM_BLOCKS/8);
+      close(fd);
+      return (block_store_get_used_blocks(bs) * BLOCK_SIZE_BYTES);
+     
+    }
+  //return 0;
+  return BLOCK_SIZE_BYTES;
+  /*
     UNUSED(bs);
     UNUSED(filename);
     return 0;
+  */
 }
