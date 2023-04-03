@@ -107,13 +107,16 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
     return false;
 }
 
+//releases the data stored in a block storage.
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
+    //param check
     if (bs == NULL){
     	return;
     } else if ((int)block_id < 0){
     	return;
     } else if (block_id < BLOCK_STORE_AVAIL_BLOCKS){
+        //resets a bit in the block storage
     	if (bitmap_test(bs->bitmapPtr, block_id)){
     		bitmap_reset(bs->bitmapPtr, block_id);
     		//free(bs->blockArray[block_id].bytes);
@@ -123,24 +126,33 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
     
 }
 
+
+//checks how many bits are used
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
+    //param check
     if (bs == NULL){
         return SIZE_MAX;
     } 
+    //returns the bits set
     return bitmap_total_set(bs->bitmapPtr);
 }
 
+//Returns the number of free bits
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
+    //param check
         if (bs == NULL){
         return SIZE_MAX;
     }
+    //returns free bits
     return bitmap_get_bits(bs->bitmapPtr) - bitmap_total_set(bs->bitmapPtr) - 1;
 }
 
+//returns the total number of free blocks
 size_t block_store_get_total_blocks()
 {
+    //the number of blocks to return
     return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
