@@ -156,31 +156,90 @@ size_t block_store_get_total_blocks()
     return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
+//writes a block store to a buffer
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
-    UNUSED(buffer);
-    return 0;
+    //checks for errors
+    if (bs != NULL && block_id < 255 && buffer != NULL){
+        //writes to buffer
+        memcpy(buffer, bs->blockArray[block_id].bytes, 256);
+        return 256;
+    }
+    else return 0;
 }
 
+//writes a buffer to a block store
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
-    UNUSED(buffer);
-    return 0;
+    //checks for errors
+    if (bs != NULL && block_id < 255 && buffer != NULL){
+        //writes to block store
+        memcpy(bs->blockArray[block_id].bytes, buffer, 256);
+        return 256;
+    }
+    else return 0;
 }
 
+//wrties file info to a block store
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    UNUSED(filename);
-    return NULL;
+    //checks for bad parameters
+    if (filename == NULL){
+        return NULL;
+    }
+    
+    //create block store
+    block_store_t* bs = block_store_create();
+    
+    //checks for error
+    if (bs == NULL){
+        return NULL;
+    }
+    
+    int fd;
+    
+    fd = open(filename, O_RDONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXO | S_IRWXG);
+    
+    if (fd == -1){
+        return NULL;
+    }
+    
+    for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++){
+        read(fd, bs, 8);
+        
+    }
+    
+    return bs;
 }
 
+//writes block store information to a file
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
-{ 
-    UNUSED(bs);
-    UNUSED(filename);
-    return 0;
+{
+    //initialize variables
+    int fd = 0;
+    size_t numOfBytes = 0;
+    
+    //error check
+    if (bs == NULL || filename == NULL){
+        return 0;
+    }
+    
+    //open file
+    fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXO | S_IRWXG);
+    
+    //return error of file
+    if (fd == -1){
+        return errno;
+    }
+    
+    //write bs info to a file and return size written
+    for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++){
+        size_t writeBytes = write(fd, bs->blockArray[i].bytes, BLOCK_SIZE_BYTES);
+        
+        numOfBytes = numOfBytes + writeBytes;
+    }
+    
+    //close file
+    close(fd);
+    return numOfBytes;
 }
