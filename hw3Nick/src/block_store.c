@@ -184,40 +184,42 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     else return 0;
 }
 
-//wrties file info to a block store
+//writes file info to a block store
 block_store_t *block_store_deserialize(const char *const filename)
 {
-     int fd = 0;
+	int fd = 0;
 
-    //error check
-    if (filename == NULL){
-        return 0;
-    }
-
-    //open file
-    fd = open(filename, O_RDONLY);
-
-    //return 0 if error
-    if (fd < 0){
-        return 0;
-    }
-    block_store_t *bs = NULL;
-    bs = block_store_create(filename);
-
-   
-    for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++)
-    {
-      if (block_store_request(bs, i) == true)
+	//error check
+	if (filename == NULL)
 	{
-        if (read(fd, bs->blockArray[i].bytes, BLOCK_SIZE_BYTES) < 0)
-          {
-	return 0;
-          }
-        }
-    }
-	close(fd);
-      return bs;
-    //close file
+        	return 0;
+	}
+
+	//open file
+	fd = open(filename, O_RDONLY);
+	
+	//return 0 if error
+	if (fd < 0)
+	{
+        	return 0;
+	}
+	
+	//initialize blockstore
+	block_store_t *bs = NULL;
+	bs = block_store_create(filename);
+
+	for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++) //iterate through blockArray locations
+	{
+		if (block_store_request(bs, i) == true) //request for block id "i" to be allocated in b
+		{
+        		if (read(fd, bs->blockArray[i].bytes, BLOCK_SIZE_BYTES) < 0) //If error return 0
+          		{
+				return 0;
+			}
+		}
+	}
+	close(fd); //close file
+	return bs; //return block_store_t struct
 }
 
 //writes block store information to a file
