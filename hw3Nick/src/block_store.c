@@ -197,14 +197,14 @@ block_store_t *block_store_deserialize(const char *const filename)
     //open file
     fd = open(filename, O_RDONLY);
 
-    //return error of file
+    //return 0 if error
     if (fd < 0){
         return 0;
     }
     block_store_t *bs = NULL;
     bs = block_store_create(filename);
 
-    //write bs info to a file and return size written
+   
     for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++)
     {
       if (block_store_request(bs, i) == true)
