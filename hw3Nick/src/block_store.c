@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 #include "bitmap.h"
 #include "block_store.h"
 // include more if you need
