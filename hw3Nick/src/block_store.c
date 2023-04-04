@@ -187,33 +187,37 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 //wrties file info to a block store
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    //checks for bad parameters
+     int fd = 0;
+
+    //error check
     if (filename == NULL){
-        return NULL;
+        return 0;
     }
-    
-    //create block store
-    block_store_t* bs = block_store_create();
-    
-    //checks for error
-    if (bs == NULL){
-        return NULL;
+
+    //open file
+    fd = open(filename, O_RDONLY);
+
+    //return error of file
+    if (fd < 0){
+        return 0;
     }
-    
-    int fd;
-    
-    fd = open(filename, O_RDONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXO | S_IRWXG);
-    
-    if (fd == -1){
-        return NULL;
+    block_store_t *bs = NULL;
+    bs = block_store_create(filename);
+
+    //write bs info to a file and return size written
+    for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++)
+    {
+      if (block_store_request(bs, i) == true)
+	{
+        if (read(fd, bs->blockArray[i].bytes, BLOCK_SIZE_BYTES) < 0)
+          {
+	return 0;
+          }
+        }
     }
-    
-    for(int i = 0; i <= BLOCK_STORE_AVAIL_BLOCKS; i++){
-        read(fd, bs, 8);
-        
-    }
-    
-    return bs;
+	close(fd);
+      return bs;
+    //close file
 }
 
 //writes block store information to a file
